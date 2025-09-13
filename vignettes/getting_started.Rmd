@@ -1,0 +1,178 @@
+---
+title: "Getting Started with scRNA-R-Python-bridging"
+author: "CC1001-CTRL"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: united
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
+                      fig.width = 8, fig.height = 6)
+```
+
+# Introduction
+
+This vignette demonstrates how to use the scRNA-R-Python-bridging template for single-cell RNA sequencing analysis. The template includes essential packages like Seurat, SpatialExperiment, and ggplot2, along with a reproducible environment managed by renv.
+
+## Package Installation
+
+If you haven't already set up the environment, install the required packages:
+
+```{r eval=FALSE}
+# Install renv if not already installed
+if (!requireNamespace("renv", quietly = TRUE)) {
+  install.packages("renv")
+}
+
+# Restore the package environment
+renv::restore()
+```
+
+## Load Required Libraries
+
+```{r load_libraries}
+library(Seurat)
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+
+# Source our custom functions
+source("../R/analysis_functions.R")
+```
+
+# Basic Single-Cell Analysis Workflow
+
+## 1. Data Loading and Preprocessing
+
+For this example, we'll use the built-in pbmc_small dataset that comes with Seurat:
+
+```{r load_data}
+# Load example data
+data("pbmc_small")
+pbmc <- pbmc_small
+
+# Display basic information
+pbmc
+```
+
+## 2. Quality Control
+
+Let's examine the quality control metrics:
+
+```{r qc_metrics}
+# Add mitochondrial gene percentage
+pbmc[["percent.mt"]] <- PercentageFeatureSet(pbmc, pattern = "^MT-")
+
+# Create QC plots
+qc_plots <- create_qc_plots(pbmc)
+qc_plots$violin
+```
+
+```{r qc_scatter}
+# Feature scatter plots
+qc_plots$feature_scatter1
+qc_plots$feature_scatter2
+```
+
+## 3. Normalization and Feature Selection
+
+```{r normalization}
+# Normalize and scale data
+pbmc <- normalize_and_scale(pbmc, nfeatures = 2000)
+
+# Show top variable features
+top10 <- head(VariableFeatures(pbmc), 10)
+print(top10)
+
+# Plot variable features
+var_plot <- VariableFeaturePlot(pbmc)
+var_plot <- LabelPoints(plot = var_plot, points = top10, repel = TRUE)
+var_plot
+```
+
+## 4. Dimensional Reduction
+
+```{r dimensionality_reduction}
+# Run PCA, clustering, and UMAP
+pbmc <- run_dimensional_reduction(pbmc, npcs = 50)
+
+# PCA plot
+DimPlot(pbmc, reduction = "pca")
+```
+
+```{r umap}
+# UMAP plot
+DimPlot(pbmc, reduction = "umap", label = TRUE, pt.size = 0.5) + 
+  ggtitle("UMAP of PBMC Clusters")
+```
+
+## 5. Cluster Analysis
+
+```{r cluster_analysis}
+# Number of cells per cluster
+table(Idents(pbmc))
+
+# Find marker genes for each cluster
+markers <- FindAllMarkers(pbmc, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+
+# Display top markers for each cluster
+top_markers <- markers %>%
+  group_by(cluster) %>%
+  slice_max(n = 3, order_by = avg_log2FC)
+
+print(top_markers)
+```
+
+## 6. Visualization of Marker Genes
+
+```{r marker_visualization}
+# Plot expression of top marker genes
+if(nrow(top_markers) > 0) {
+  feature_genes <- head(unique(top_markers$gene), 6)
+  FeaturePlot(pbmc, features = feature_genes, ncol = 3)
+}
+```
+
+## 7. Spatial Analysis with SpatialExperiment
+
+For spatial transcriptomics data, you can use SpatialExperiment:
+
+```{r spatial_example, eval=FALSE}
+library(SpatialExperiment)
+
+# Example of creating a SpatialExperiment object
+# (This is just a template - replace with your actual spatial data)
+# spe <- SpatialExperiment(
+#   assays = list(counts = your_count_matrix),
+#   colData = your_cell_metadata,
+#   spatialCoords = your_spatial_coordinates
+# )
+```
+
+# Session Information
+
+```{r session_info}
+sessionInfo()
+```
+
+# Summary
+
+This vignette demonstrated:
+
+1. Loading and quality control of single-cell data
+2. Normalization and feature selection
+3. Dimensional reduction with PCA and UMAP
+4. Clustering and marker gene identification
+5. Visualization techniques
+
+The template provides a solid foundation for single-cell RNA-seq analysis with reproducible package management through renv.
+
+For more advanced analyses, refer to:
+- [Seurat documentation](https://satijalab.org/seurat/)
+- [SpatialExperiment vignettes](https://bioconductor.org/packages/SpatialExperiment/)
+- [Bioconductor workflows](https://bioconductor.org/help/workflows/)

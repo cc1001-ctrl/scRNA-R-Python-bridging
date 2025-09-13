@@ -1,0 +1,57 @@
+# renv files
+renv/
+!renv/settings.dcf
+!renv/activate.R
+
+# R files
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# Output files
+outputs/*.png
+outputs/*.pdf
+outputs/*.csv
+outputs/*.rds
+outputs/*.html
+
+# Data files (uncomment as needed)
+# data/*.csv
+# data/*.tsv
+# data/*.h5
+# data/*.gz
+# data/*.rds
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Log files
+*.log
+
+# Compiled R files
+*.so
+*.dll
+*.dylib
+
+# Package build files
+*.tar.gz
+*.zip
+
+# HTML files (unless specifically needed)
+*.html
+
+# Cache directories
+cache/
+.cache/
